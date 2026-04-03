@@ -1,36 +1,22 @@
 from flask import Flask, render_template, request, jsonify
-import json
 import os
 from openai import OpenAI
 from pymongo import MongoClient
+
 app = Flask(__name__)
-# ✅ MongoDB connection
-client_db = MongoClient(os.getenv("MONGO_URI"))
+
+# ✅ MongoDB connection (CLEAN)
+mongo_uri = os.getenv("MONGO_URI")
+
+if not mongo_uri:
+    raise Exception("MONGO_URI is missing")
+
+client_db = MongoClient(mongo_uri)
 db = client_db["zoo"]
 animals_collection = db["animals"]
-# ✅ Load animal data
-with open("data/animals.json") as f:
-    animals = json.load(f)
 
 # ✅ OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# ✅ Chat memory (simple global memory)
-chat_history = [
-    {
-        "role": "system",
-        "content": """
-You are ZooAssist AI, a smart zoo guide.
-
-Rules:
-- Give short, accurate answers
-- Prefer zoo database info when possible
-- If user asks directions → explain clearly
-- If unknown → say politely
-- Add 1 fun fact when possible
-"""
-    }
-]
 
 # 🏠 Home route
 @app.route("/")
@@ -41,73 +27,43 @@ def home():
 # 💬 Chat route
 @app.route("/chat", methods=["POST"])
 def chat():
-    global chat_history
-
     try:
         user_msg = request.json.get("message", "").lower()
 
         if not user_msg:
             return jsonify({"reply": "Please enter a message.", "image": None})
 
-        # 🧠 Intent Detection
-        if "where" in user_msg or "location" in user_msg:
-            return jsonify({
-                "reply": "Use the 📍 button to find nearby animals!",
-                "image": None
-            })
-
-        if "ticket" in user_msg:
-            return jsonify({
-                "reply": "Tickets are available at the entrance from 9 AM to 5 PM.",
-                "image": None
-            })
-
-        # 🐾 Rule-based animal response
+        # ✅ Mongo search
         animal = animals_collection.find_one({
-    "name": {"$regex": user_msg, "$options": "i"}
-})
+            "name": {"$regex": user_msg, "$options": "i"}
+        })
 
         if animal:
             return jsonify({
                 "reply": f"{animal['name']} is a {animal['diet']} located in {animal['location']}. Fun fact: {animal['fact']}",
-                 "image": f"/static/images/{animal['name'].lower()}.jpg"
-    })
+                "image": None
+            })
 
-        # 🧠 Add user message to memory
-        chat_history.append({
-            "role": "user",
-            "content": user_msg
-        })
-
-        # 🤖 AI fallback with memory
+        # 🤖 AI fallback
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=chat_history
+            messages=[
+                {"role": "system", "content": "You are a zoo assistant."},
+                {"role": "user", "content": user_msg}
+            ]
         )
 
-        reply = response.choices[0].message.content
-
-        # 🧠 Store AI response
-        chat_history.append({
-            "role": "assistant",
-            "content": reply
-        })
-
         return jsonify({
-            "reply": reply,
+            "reply": response.choices[0].message.content,
             "image": None
         })
 
     except Exception as e:
+        print("CHAT ERROR:", str(e))
         return jsonify({
-            "reply": f"⚠️ Error: {str(e)}",
+            "reply": f"Error: {str(e)}",
             "image": None
         })
-
-
-# 🚀 Run locally
-if __name__ == "__main__":
-    app.run(debug=True)
 
 
 # 🌐 Vercel handler
