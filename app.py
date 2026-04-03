@@ -9,8 +9,25 @@ app = Flask(__name__)
 with open("data/animals.json") as f:
     animals = json.load(f)
 
-# ✅ Secure API key (use environment variable)
+# ✅ OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# ✅ Chat memory (simple global memory)
+chat_history = [
+    {
+        "role": "system",
+        "content": """
+You are ZooAssist AI, a smart zoo guide.
+
+Rules:
+- Give short, accurate answers
+- Prefer zoo database info when possible
+- If user asks directions → explain clearly
+- If unknown → say politely
+- Add 1 fun fact when possible
+"""
+    }
+]
 
 # 🏠 Home route
 @app.route("/")
@@ -21,13 +38,28 @@ def home():
 # 💬 Chat route
 @app.route("/chat", methods=["POST"])
 def chat():
+    global chat_history
+
     try:
         user_msg = request.json.get("message", "").lower()
 
         if not user_msg:
-            return jsonify({"reply": "Please enter a message."})
+            return jsonify({"reply": "Please enter a message.", "image": None})
 
-        # 🧠 Rule-based response (fast + reliable)
+        # 🧠 Intent Detection
+        if "where" in user_msg or "location" in user_msg:
+            return jsonify({
+                "reply": "Use the 📍 button to find nearby animals!",
+                "image": None
+            })
+
+        if "ticket" in user_msg:
+            return jsonify({
+                "reply": "Tickets are available at the entrance from 9 AM to 5 PM.",
+                "image": None
+            })
+
+        # 🐾 Rule-based animal response
         for animal in animals:
             if animal in user_msg:
                 info = animals[animal]
@@ -37,17 +69,28 @@ def chat():
                     "image": f"/static/images/{animal}.jpg"
                 })
 
-        # 🤖 AI fallback
+        # 🧠 Add user message to memory
+        chat_history.append({
+            "role": "user",
+            "content": user_msg
+        })
+
+        # 🤖 AI fallback with memory
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful zoo assistant. Keep answers short and informative."},
-                {"role": "user", "content": user_msg}
-            ]
+            messages=chat_history
         )
 
+        reply = response.choices[0].message.content
+
+        # 🧠 Store AI response
+        chat_history.append({
+            "role": "assistant",
+            "content": reply
+        })
+
         return jsonify({
-            "reply": response.choices[0].message.content,
+            "reply": reply,
             "image": None
         })
 
@@ -61,3 +104,8 @@ def chat():
 # 🚀 Run locally
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+# 🌐 Vercel handler
+def handler(request, response):
+    return app(request.environ, lambda *args: None)
