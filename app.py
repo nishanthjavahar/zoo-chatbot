@@ -2,9 +2,12 @@ from flask import Flask, render_template, request, jsonify
 import json
 import os
 from openai import OpenAI
-
+from pymongo import MongoClient
 app = Flask(__name__)
-
+# ✅ MongoDB connection
+client_db = MongoClient("mongodb+srv://zooAdmin:StrongPassword123@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority")
+db = client_db["zoo"]
+animals_collection = db["animals"]
 # ✅ Load animal data
 with open("data/animals.json") as f:
     animals = json.load(f)
@@ -60,14 +63,15 @@ def chat():
             })
 
         # 🐾 Rule-based animal response
-        for animal in animals:
-            if animal in user_msg:
-                info = animals[animal]
+        animal = animals_collection.find_one({
+    "name": {"$regex": user_msg, "$options": "i"}
+})
 
-                return jsonify({
-                    "reply": f"{info['name']} is a {info['diet']} animal located in {info['location']}. Fun fact: {info['fact']}",
-                    "image": f"/static/images/{animal}.jpg"
-                })
+        if animal:
+            return jsonify({
+                "reply": f"{animal['name']} is a {animal['diet']} located in {animal['location']}. Fun fact: {animal['fact']}",
+                 "image": f"/static/images/{animal['name'].lower()}.jpg"
+    })
 
         # 🧠 Add user message to memory
         chat_history.append({
