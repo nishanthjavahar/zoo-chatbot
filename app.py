@@ -5,7 +5,7 @@ from openai import OpenAI
 from pymongo import MongoClient
 app = Flask(__name__)
 # ✅ MongoDB connection
-client_db = MongoClient("mongodb+srv://zooAdmin:StrongPassword123@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority")
+client_db = MongoClient(os.getenv("MONGO_URI"))
 db = client_db["zoo"]
 animals_collection = db["animals"]
 # ✅ Load animal data
