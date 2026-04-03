@@ -1,0 +1,101 @@
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: url("https://images.unsplash.com/photo-1501785888041-af3ef285b470") no-repeat center center/cover;
+}
+
+.chat-container {
+    width: 400px;
+    height: 600px;
+    margin: 40px auto;
+    background: #ffffff;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.chat-container {
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.9);
+}
+.chat-header {
+    background: url("https://www.transparenttextures.com/patterns/leaf.png"), #2e7d32;
+}
+
+/* Header */
+.chat-header {
+    background: #2e7d32;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    border-radius: 20px 20px 0 0;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.chat-header p {
+    font-size: 12px;
+    margin: 5px 0 0;
+}
+
+/* Chat messages */
+.chat-box {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+/* User bubble */
+.user {
+    text-align: right;
+    margin: 10px;
+}
+
+.user span {
+    background: #4caf50;
+    color: white;
+    padding: 10px;
+    border-radius: 15px;
+    display: inline-block;
+}
+
+/* Bot bubble */
+.bot {
+    text-align: left;
+    margin: 10px;
+}
+
+.bot span {
+    background: #eeeeee;
+    padding: 10px;
+    border-radius: 15px;
+    display: inline-block;
+}
+
+/* Input */
+.input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+button {
+    margin-left: 10px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1b5e20;
+}

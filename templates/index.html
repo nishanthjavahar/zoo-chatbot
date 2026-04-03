@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ZooAssist AI 🦁</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="chat-container">
+
+    <!-- Header -->
+    <div class="chat-header">
+        🦁 ZooAssist AI
+        <p>Your Smart Zoo Guide</p>
+    </div>
+
+    <!-- Chat Box -->
+    <div id="chat-box" class="chat-box"></div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+        <input id="msg" placeholder="Ask about animals, directions..." />
+        <button onclick="send()">Send</button>
+    </div>
+
+</div>
+<div class="input-area">
+    <input id="msg" placeholder="Ask something..." />
+    <button onclick="startVoice()">🎤</button>
+    <button onclick="send()">Send</button>
+</div>
+<button onclick="whereAmI()">📍 Where am I?</button>
+<script src="/static/script.js"></script>
+
+</body>
+</html>

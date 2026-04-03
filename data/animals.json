@@ -1,0 +1,14 @@
+{
+  "tiger": {
+    "name": "Bengal Tiger",
+    "diet": "Carnivore",
+    "location": "Zone A",
+    "fact": "Tigers are excellent swimmers."
+  },
+  "lion": {
+    "name": "Lion",
+    "diet": "Carnivore",
+    "location": "Zone B",
+    "fact": "Lions live in groups called prides."
+  }
+}
